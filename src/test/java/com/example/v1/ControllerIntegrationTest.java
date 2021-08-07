@@ -1,4 +1,4 @@
-package com.example;
+package com.example.v1;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ControllerIntegrationTest {
 
     private static final MockHttpServletRequestBuilder REQUEST_BUILDER =
-            request(HttpMethod.POST, "/instructions")
+            request(HttpMethod.POST, "/api/v1/instructions")
                     .header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
                     .accept(APPLICATION_JSON);
 

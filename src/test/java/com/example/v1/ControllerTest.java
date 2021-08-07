@@ -1,17 +1,21 @@
-package com.example;
+package com.example.v1;
 
 import com.example.converter.ArrayToGridLocationConverter;
 import com.example.converter.StringToDirectionConverter;
 import com.example.factory.RoomGridFactory;
 import com.example.model.GridLocation;
 import com.example.model.RobotCleaningResult;
+import com.example.model.RoomGrid;
 import com.example.resource.CleaningRobotNavigationResource;
 import com.example.service.CleaningRobotService;
+import com.example.service.InstructionAuditService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +29,8 @@ class ControllerTest {
     @Mock
     private CleaningRobotService cleaningRobotService;
     @Mock
+    private InstructionAuditService instructionAuditService;
+    @Mock
     private RoomGridFactory roomGridFactory;
     @Mock
     private ArrayToGridLocationConverter arrayToGridLocationConverter;
@@ -37,6 +43,7 @@ class ControllerTest {
     void setUp() {
         this.controller = new Controller(
                 cleaningRobotService,
+                instructionAuditService,
                 roomGridFactory,
                 arrayToGridLocationConverter,
                 stringToDirectionConverter);
@@ -55,6 +62,8 @@ class ControllerTest {
                 instructions);
         final var cleaningResult = new RobotCleaningResult(new GridLocation(0, 0), 1);
         when(cleaningRobotService.startCleaning(any(), any(), anyList())).thenReturn(cleaningResult);
+        when(roomGridFactory.create(any(), any())).thenReturn(new RoomGrid(5, 5, Collections.emptyList()));
+        when(arrayToGridLocationConverter.convert(any())).thenReturn(new GridLocation(0, 0));
 
         final var result = controller.processInstructions(cleaningRobotNavigationResource);
 

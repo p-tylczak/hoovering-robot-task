@@ -4,20 +4,25 @@ import com.example.factory.CleaningRobotFactory;
 import com.example.model.GridLocation;
 import com.example.model.RobotCleaningResult;
 import com.example.model.RoomGrid;
-import org.springframework.stereotype.Component;
+import com.example.repository.RobotCleaningResultEntity;
+import com.example.repository.RobotCleaningResultRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
+@Service
 public class CleaningRobotService {
 
     private final CleaningRobotNavigator cleaningRobotNavigator;
     private final CleaningRobotFactory cleaningRobotFactory;
+    private final RobotCleaningResultRepository robotCleaningResultRepository;
 
     public CleaningRobotService(CleaningRobotNavigator cleaningRobotNavigator,
-                                CleaningRobotFactory cleaningRobotFactory) {
+                                CleaningRobotFactory cleaningRobotFactory,
+                                RobotCleaningResultRepository robotCleaningResultRepository) {
         this.cleaningRobotNavigator = cleaningRobotNavigator;
         this.cleaningRobotFactory = cleaningRobotFactory;
+        this.robotCleaningResultRepository = robotCleaningResultRepository;
     }
 
     public RobotCleaningResult startCleaning(RoomGrid roomGrid,
@@ -38,8 +43,20 @@ public class CleaningRobotService {
             cleaningRobot.cleanLocation(cleaningRobotLocation);
         }
 
-        return new RobotCleaningResult(
+        final var result = new RobotCleaningResult(
                 cleaningRobotLocation,
                 cleaningRobot.getCleanedPatchCount());
+
+        saveResult(result);
+
+        return result;
+    }
+
+    private void saveResult(RobotCleaningResult result) {
+        robotCleaningResultRepository.save(
+                new RobotCleaningResultEntity(
+                        result.getFinalPosition().getXCoordinate(),
+                        result.getFinalPosition().getYCoordinate(),
+                        result.getDirtPatchesCleaned()));
     }
 }

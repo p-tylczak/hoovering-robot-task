@@ -3,15 +3,25 @@ package com.example.service;
 import com.example.factory.CleaningRobotFactory;
 import com.example.model.GridLocation;
 import com.example.model.RoomGrid;
+import com.example.repository.RobotCleaningResultEntity;
+import com.example.repository.RobotCleaningResultRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class CleaningRobotServiceTest {
+
+    @Mock
+    private RobotCleaningResultRepository robotCleaningResultRepository;
 
     private CleaningRobotService cleaningRobotService;
 
@@ -19,7 +29,8 @@ class CleaningRobotServiceTest {
     void setUp() {
         this.cleaningRobotService = new CleaningRobotService(
                 new CleaningRobotNavigator(new NextLocationCalculator()),
-                new CleaningRobotFactory(new RoomGridValidator(), new RoomGridInitializer()));
+                new CleaningRobotFactory(new RoomGridValidator(), new RoomGridInitializer()),
+                robotCleaningResultRepository);
     }
 
     @Test
@@ -93,5 +104,31 @@ class CleaningRobotServiceTest {
 
         assertThat(result.getFinalPosition()).isEqualTo(new GridLocation(1, 0));
         assertThat(result.getDirtPatchesCleaned()).isEqualTo(4);
+    }
+
+    @Test
+    void startCleaning_shouldCallRepositoryWithCorrectArguments() {
+        final var locationOfDirtPatches = Arrays.asList(
+                new GridLocation(0, 0),
+                new GridLocation(1, 1));
+        final var roomGrid = new RoomGrid(2, 2, locationOfDirtPatches);
+        final var initialCleanerRobotLocation = new GridLocation(0, 0);
+        final var navigationInstructions = Arrays.asList(
+                Direction.NORTH,
+                Direction.EAST,
+                Direction.SOUTH,
+                Direction.WEST);
+
+        final var result = cleaningRobotService.startCleaning(roomGrid, initialCleanerRobotLocation, navigationInstructions);
+
+        final int x = 0;
+        final int y = 0;
+        final int count = 2;
+
+        assertThat(result.getFinalPosition()).isEqualTo(new GridLocation(x, y));
+        assertThat(result.getDirtPatchesCleaned()).isEqualTo(count);
+
+        final var expected = new RobotCleaningResultEntity(x, y, count);
+        verify(robotCleaningResultRepository).save(expected);
     }
 }
